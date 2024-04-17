@@ -15,6 +15,7 @@ library(corrplot)
 
 # Đọc dữ liệu và gán các giá trị chuỗi rỗng và "N/A" thành NA
 All_GPUs <- read.csv("All_GPUs.csv", na.strings = c("", "N/A"))
+All_GPUs$Core_Speed <- gsub("- ", NA, All_GPUs$Core_Speed)
 
 # Làm sạch dữ liệu
 
@@ -31,7 +32,7 @@ mrdf <- data.frame(Category = names(missRateDataFrames), percentage = missRateDa
 ggplot(mrdf, aes(x = Category, y = percentage)) +
   geom_bar(stat = "identity", fill = "steelblue") +
   theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
-  ggtitle("Missing Data Rate")
+  ggtitle("Tỉ Lệ Khuyết của các dữ liệu")
 
 # Kiểm tra các dữ liệu bị khuyết
 missRateArray = colSums(is.na(new_GPUs_DF))
@@ -41,6 +42,7 @@ for(i in 1:length(missRateArray)) {
 
 # Xóa các hàng mà có giá trị NA hoặc trống ở các cột không thể thay số
 new_GPUs_DF <- new_GPUs_DF[!is.na(new_GPUs_DF[,1]), ]
+
 # new_GPUs_DF <- new_GPUs_DF[!is.na(new_GPUs_DF[,2]), ]
 # new_GPUs_DF <- new_GPUs_DF[!is.na(new_GPUs_DF[,6]), ]
 # new_GPUs_DF <- new_GPUs_DF[!is.na(new_GPUs_DF[,7]), ]
@@ -49,8 +51,6 @@ new_GPUs_DF <- new_GPUs_DF[!is.na(new_GPUs_DF[,1]), ]
 # new_GPUs_DF <- new_GPUs_DF[!is.na(new_GPUs_DF[,27]), ]
 
 # Đổi tên cột và bỏ chuỗi Đơn vị và đem các đơn vị lên để chung với tên cột
-# new_GPUs_DF$Boost_Clock <- as.numeric(gsub("MHz", "", new_GPUs_DF$Boost_Clock))
-# colnames(new_GPUs_DF)[3] <- "Boost_Clock(MHz)"
 new_GPUs_DF$Core_Speed <- as.numeric(gsub("MHz", "", new_GPUs_DF$Core_Speed))
 colnames(new_GPUs_DF)[2] <- "Core_Speed(MHz)"
 new_GPUs_DF$Max_Power <- as.numeric(gsub("Watts", "", new_GPUs_DF$Max_Power))
@@ -63,10 +63,13 @@ new_GPUs_DF$Memory_Bus <- as.numeric(gsub("Bit", "", new_GPUs_DF$Memory_Bus))
 colnames(new_GPUs_DF)[6] <- "Memory_Bus(Bit)"
 new_GPUs_DF$Memory_Speed <- as.numeric(gsub("MHz", "", new_GPUs_DF$Memory_Speed))
 colnames(new_GPUs_DF)[7] <- "Memory_Speed(MHz)"
-# new_GPUs_DF$Pixel_Rate <- as.numeric(gsub("GPixel/s", "", new_GPUs_DF$Pixel_Rate))
-# colnames(new_GPUs_DF)[22] <- "Pixel_Rate(GPixel/s)"
 new_GPUs_DF$Process <- as.numeric(gsub("nm", "", new_GPUs_DF$Process))
 colnames(new_GPUs_DF)[8] <- "Process(nm)"
+
+# new_GPUs_DF$Boost_Clock <- as.numeric(gsub("MHz", "", new_GPUs_DF$Boost_Clock))
+# colnames(new_GPUs_DF)[3] <- "Boost_Clock(MHz)"
+# new_GPUs_DF$Pixel_Rate <- as.numeric(gsub("GPixel/s", "", new_GPUs_DF$Pixel_Rate))
+# colnames(new_GPUs_DF)[22] <- "Pixel_Rate(GPixel/s)"
 # new_GPUs_DF$Texture_Rate <- as.numeric(gsub("GTexel/s", "", new_GPUs_DF$Texture_Rate))
 # colnames(new_GPUs_DF)[30] <- "Texture_Rate(GTexel/s)"
 
@@ -83,18 +86,6 @@ Lower <- quartiles[1] - 1.5*IQR
 Upper <- quartiles[2] + 1.5*IQR 
 new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$`Core_Speed(MHz)` > Lower & new_GPUs_DF$`Core_Speed(MHz)` < Upper)
 
-# quartiles <- quantile(new_GPUs_DF$DVI_Connection, probs=c(.25, .75), na.rm = TRUE)
-# IQR <- IQR(new_GPUs_DF$DVI_Connection, na.rm = TRUE)
-# Lower <- quartiles[1] - 1.5*IQR
-# Upper <- quartiles[2] + 1.5*IQR 
-# new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$DVI_Connection > Lower & new_GPUs_DF$DVI_Connection < Upper)
-
-# quartiles <- quantile(new_GPUs_DF$HDMI_Connection, probs=c(.25, .75), na.rm = TRUE)
-# IQR <- IQR(new_GPUs_DF$HDMI_Connection, na.rm = TRUE)
-# Lower <- quartiles[1] - 1.5*IQR
-# Upper <- quartiles[2] + 1.5*IQR 
-# new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$HDMI_Connection > Lower & new_GPUs_DF$HDMI_Connection < Upper)
-
 quartiles <- quantile(new_GPUs_DF$`Max_Power(Watts)`, probs=c(.25, .75), na.rm = TRUE)
 IQR <- IQR(new_GPUs_DF$`Max_Power(Watts)`, na.rm = TRUE)
 Lower <- quartiles[1] - 1.5*IQR
@@ -106,6 +97,36 @@ IQR <- IQR(new_GPUs_DF$`Memory(MB)`, na.rm = TRUE)
 Lower <- quartiles[1] - 1.5*IQR
 Upper <- quartiles[2] + 1.5*IQR 
 new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$`Memory(MB)` > Lower & new_GPUs_DF$`Memory(MB)` < Upper)
+
+quartiles <- quantile(new_GPUs_DF$`Memory_Bandwidth(GB/sec)`, probs=c(.25, .75), na.rm = TRUE)
+IQR <- IQR(new_GPUs_DF$`Memory_Bandwidth(GB/sec)`, na.rm = TRUE)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$`Memory_Bandwidth(GB/sec)` > Lower & new_GPUs_DF$`Memory_Bandwidth(GB/sec)` < Upper)
+
+quartiles <- quantile(new_GPUs_DF$`Memory_Bus(Bit)`, probs=c(.25, .75), na.rm = TRUE)
+IQR <- IQR(new_GPUs_DF$`Memory_Bus(Bit)`, na.rm = TRUE)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$`Memory_Bus(Bit)` > Lower & new_GPUs_DF$`Memory_Bus(Bit)` < Upper)
+
+quartiles <- quantile(new_GPUs_DF$`Process(nm)`, probs=c(.25, .75), na.rm = TRUE)
+IQR <- IQR(new_GPUs_DF$`Process(nm)`, na.rm = TRUE)
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$`Process(nm)` > Lower & new_GPUs_DF$`Process(nm)` < Upper)
+
+# quartiles <- quantile(new_GPUs_DF$DVI_Connection, probs=c(.25, .75), na.rm = TRUE)
+# IQR <- IQR(new_GPUs_DF$DVI_Connection, na.rm = TRUE)
+# Lower <- quartiles[1] - 1.5*IQR
+# Upper <- quartiles[2] + 1.5*IQR 
+# new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$DVI_Connection > Lower & new_GPUs_DF$DVI_Connection < Upper)
+
+# quartiles <- quantile(new_GPUs_DF$HDMI_Connection, probs=c(.25, .75), na.rm = TRUE)
+# IQR <- IQR(new_GPUs_DF$HDMI_Connection, na.rm = TRUE)
+# Lower <- quartiles[1] - 1.5*IQR
+# Upper <- quartiles[2] + 1.5*IQR 
+# new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$HDMI_Connection > Lower & new_GPUs_DF$HDMI_Connection < Upper)
 
 # quartiles <- quantile(new_GPUs_DF$Open_GL, probs=c(.25, .75), na.rm = TRUE)
 # IQR <- IQR(new_GPUs_DF$Open_GL, na.rm = TRUE)
@@ -126,14 +147,8 @@ new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$`Memory(MB)` > Lower & new_GPUs_D
 # new_GPUs_DF <- subset(new_GPUs_DF, new_GPUs_DF$VGA_Connection > Lower & new_GPUs_DF$VGA_Connection < Upper)
 
 # Tính giá trị trung bình cho các cột và gán vào các ô "NA"
-# mean_values <- mean(new_GPUs_DF$`Boost_Clock(MHz)`, na.rm = TRUE)
-# new_GPUs_DF$`Boost_Clock(MHz)`[is.na(new_GPUs_DF$`Boost_Clock(MHz)`)] <- mean_values
 mean_values <- mean(new_GPUs_DF$`Core_Speed(MHz)`, na.rm = TRUE)
 new_GPUs_DF$`Core_Speed(MHz)`[is.na(new_GPUs_DF$`Core_Speed(MHz)`)] <- mean_values
-# mean_values <- mean(new_GPUs_DF$DVI_Connection, na.rm = TRUE)
-# new_GPUs_DF$DVI_Connection[is.na(new_GPUs_DF$DVI_Connection)] <- mean_values
-# mean_values <- mean(new_GPUs_DF$HDMI_Connection, na.rm = TRUE)
-# new_GPUs_DF$HDMI_Connection[is.na(new_GPUs_DF$HDMI_Connection)] <- mean_values
 mean_values <- mean(new_GPUs_DF$`Max_Power(Watts)`, na.rm = TRUE)
 new_GPUs_DF$`Max_Power(Watts)`[is.na(new_GPUs_DF$`Max_Power(Watts)`)] <- mean_values
 mean_values <- mean(new_GPUs_DF$`Memory(MB)`, na.rm = TRUE)
@@ -142,6 +157,13 @@ mean_values <- mean(new_GPUs_DF$`Memory_Bandwidth(GB/sec)`, na.rm = TRUE)
 new_GPUs_DF$`Memory_Bandwidth(GB/sec)`[is.na(new_GPUs_DF$`Memory_Bandwidth(GB/sec)`)] <- mean_values
 mean_values <- mean(new_GPUs_DF$`Memory_Bus(Bit)`, na.rm = TRUE)
 new_GPUs_DF$`Memory_Bus(Bit)`[is.na(new_GPUs_DF$`Memory_Bus(Bit)`)] <- mean_values
+
+# mean_values <- mean(new_GPUs_DF$DVI_Connection, na.rm = TRUE)
+# new_GPUs_DF$DVI_Connection[is.na(new_GPUs_DF$DVI_Connection)] <- mean_values
+# mean_values <- mean(new_GPUs_DF$HDMI_Connection, na.rm = TRUE)
+# new_GPUs_DF$HDMI_Connection[is.na(new_GPUs_DF$HDMI_Connection)] <- mean_values
+# mean_values <- mean(new_GPUs_DF$`Boost_Clock(MHz)`, na.rm = TRUE)
+# new_GPUs_DF$`Boost_Clock(MHz)`[is.na(new_GPUs_DF$`Boost_Clock(MHz)`)] <- mean_values
 # mean_values <- mean(new_GPUs_DF$Open_GL, na.rm = TRUE)
 # new_GPUs_DF$Open_GL[is.na(new_GPUs_DF$Open_GL)] <- mean_values
 # mean_values <- mean(new_GPUs_DF$Shader, na.rm = TRUE)
